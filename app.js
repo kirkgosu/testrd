@@ -14,8 +14,83 @@ var http = require('http');
 var https = require('https');
 
 var app = express();
-mongoose.connect('mongodb://feeds:feed123@ds129374.mlab.com:29374/testrd');
+console.log('conexion a bd: '+process.env.MDB_CONNECT);
 
+
+if(typeof process.env.MDB_CONNECT != 'undefined'){
+    //mongoose.connect('mongodb://feeds:feed123@ds129374.mlab.com:29374/testrd'); // test case
+    mongoose.connect(process.env.MDB_CONNECT);
+    schedule.scheduleJob('0 0 */1 * * *', function(){
+    //schedule.scheduleJob('*/10 * * * * *', function(){ // test case every 10 segundos
+        console.log('URL API: '+process.env.API_URL);
+        if(typeof process.env.API_URL != 'undefined'){
+            var url = process.env.API_URL;
+            //var url = "https://hn.algolia.com/api/v1/search_by_date?query=nodejs"; // test
+            https.get(url, function(res){
+                var body = '';
+
+                res.on('data', function(chunk){
+                    body += chunk;
+                });
+
+                res.on('end', function(){
+                    var apiResponse = JSON.parse(body);
+                    insertaBD(apiResponse);
+                });
+            }).on('error', function(e){
+                console.log("error: ", e);
+            });
+        }else{
+            console.log("debe setear la variable API_URL")
+        }
+
+
+        function insertaBD(body){
+            if(typeof body != 'object'){
+                return false;
+            }
+
+            async.each(body.hits, function (item, callback) {
+
+                console.log('procesando feed id: '+item.objectID);
+
+                feed.findOne({ 'id': item.objectID }, function (err, fd) {
+                    if (err) return false;
+
+                    if(fd==null){
+
+                        var reg = new feed();
+                        reg.id = item.objectID;
+                        reg.url = item.url;
+                        reg.story_url = item.story_url;
+                        reg.story_title = item.story_title;
+                        reg.title = item.title;
+                        reg.author = item.author;
+                        reg.created_at = item.created_at;
+
+                        reg.save();
+                        console.log('insertado correctamente');
+                        callback();
+                    }else{
+                        console.log("id "+ item.objectID + " ya existe en la BD" );
+                        callback();
+                    }
+
+                });
+
+
+            }, function (error) {
+                if (error) console.log('Error al leer');
+            });
+
+
+        }
+
+
+    });
+}else{
+    console.log("debe setear la variable MDB_CONNECT")
+}
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -28,70 +103,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 
-//schedule.scheduleJob('0 0 */1 * * *', function(){
-schedule.scheduleJob('*/10 * * * * *', function(){
-    console.log('URL API: '+process.env.API_URL);
 
-    var url = process.env.API_URL;
-    var url = "https://hn.algolia.com/api/v1/search_by_date?query=nodejs";
-    https.get(url, function(res){
-        var body = '';
-
-        res.on('data', function(chunk){
-            body += chunk;
-        });
-
-        res.on('end', function(){
-            var apiResponse = JSON.parse(body);
-            insertaBD(apiResponse);
-        });
-    }).on('error', function(e){
-        console.log("error: ", e);
-    });
-
-    function insertaBD(body){
-      if(typeof body != 'object'){
-        return false;
-      }
-
-        async.each(body.hits, function (item, callback) {
-
-            console.log('procesando feed id: '+item.objectID);
-
-            feed.findOne({ 'id': item.objectID }, function (err, fd) {
-                if (err) return false;
-
-                if(fd==null){
-
-                    var reg = new feed();
-                    reg.id = item.objectID;
-                    reg.url = item.url;
-                    reg.story_url = item.story_url;
-                    reg.story_title = item.story_title;
-                    reg.title = item.title;
-                    reg.author = item.author;
-                    reg.created_at = item.created_at;
-
-                    reg.save();
-                    console.log('insertado correctamente');
-                    callback();
-                }else{
-                    console.log("id "+ item.objectID + " ya existe en la BD" );
-                    callback();
-                }
-
-            });
-
-
-        }, function (error) {
-            if (error) console.log('Error al leer');
-        });
-
-
-    }
-
-
-});
 
 
 // catch 404 and forward to error handler

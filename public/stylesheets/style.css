@@ -29,3 +29,11 @@ a:hover{
 .fila:hover td{
   background-color:#fafafa;
 }
+.mostraronhover{
+  visibility:hidden;
+}
+
+.fila:hover a{
+  visibility:visible;
+}
+

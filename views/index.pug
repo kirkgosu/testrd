@@ -36,6 +36,7 @@ block content
                             - fechaFinal = item.created_at.toString().substr(4,4) +' '+item.created_at.toString().substr(8,2)
                       span.time #{fechaFinal}
                   td
-                    a(href='/eliminaRegistro/'+item.id)
+
+                    a(href='/eliminaRegistro/'+item.id, class='mostraronhover')
                       span.glyphicon.glyphicon-trash(aria-hidden='true')
 
