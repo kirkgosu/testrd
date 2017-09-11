@@ -1,0 +1,41 @@
+extends layout
+
+block content
+ .container-fluid
+      .row.custom-header
+        h1 #{title}
+        h4
+          | we <3 hacker news
+      .row
+        table.table
+          tbody
+            each item in data
+                - if (item.story_title == null && item.title == null)
+                    - continue;
+                tr.fila
+                  td
+                    - var urlFinal = item.story_url == null ? item.url : item.story_url
+                    - var tituloFinal = item.story_title == null ? item.title : item.story_title
+                    a(href=urlFinal, target='_blank')
+                      span.title #{tituloFinal}
+                      span.author - #{item.author} -
+                  td
+                      - var fechaFinal = ''
+                      - var fecha = moment(item.created_at).format("YYYY-MM-DD HH:mm")
+                      - var fechaCorta = moment(item.created_at).format("YYYY-MM-DD")
+                      - var date1 = new Date(fechaCorta);
+                      - var date2 = new Date(Date.now());
+                      - var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+                      - var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24))-1;
+
+                      - if(diffDays==0)
+                            - fechaFinal = fecha.substr(10,6)
+                      - else if(diffDays>0 && diffDays<= 1)
+                            - fechaFinal = "yesterday"
+                      - else
+                            - fechaFinal = item.created_at.toString().substr(4,4) +' '+item.created_at.toString().substr(8,2)
+                      span.time #{fechaFinal}
+                  td
+                    a(href='/eliminaRegistro/'+item.id)
+                      span.glyphicon.glyphicon-trash(aria-hidden='true')
+
