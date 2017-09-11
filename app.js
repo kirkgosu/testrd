@@ -28,11 +28,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 
-schedule.scheduleJob('0 0 */1 * * *', function(){
+//schedule.scheduleJob('0 0 */1 * * *', function(){
+schedule.scheduleJob('*/10 * * * * *', function(){
     console.log('URL API: '+process.env.API_URL);
 
     var url = process.env.API_URL;
-    //var url = "https://hn.algolia.com/api/v1/search_by_date?query=nodejs";
+    var url = "https://hn.algolia.com/api/v1/search_by_date?query=nodejs";
     https.get(url, function(res){
         var body = '';
 

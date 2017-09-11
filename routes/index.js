@@ -15,7 +15,6 @@ router.get('/', function(req, res, next) {
             res.render('index', { title: 'HN Feed', found:false  });
 
         }else{
-            console.log(fd);
             res.render('index', { title: 'HN Feed', found:true, data:fd, moment: moment });
         }});
 
